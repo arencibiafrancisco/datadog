@@ -1,0 +1,87 @@
+datadog:
+  # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one
+  apiKeyExistingSecret: "datadog-secrets"
+  # datadog.appKeyExistingSecret -- Use existing Secret which stores APP key instead of creating a new one
+  appKeyExistingSecret: "datadog-secrets"
+  # datadog.clusterName -- Set a unique cluster name to allow scoping hosts and Cluster Checks easily
+  clusterName: "k8s-argon.eu.scalefast.com"
+  # datadog.logLevel -- Set logging verbosity, valid log levels are: trace, debug, info, warn, error, critical, off
+  logLevel: WARN
+  # datadog.kubeStateMetricsEnabled -- If true, deploys the kube-state-metrics deployment
+  kubeStateMetricsEnabled: false
+  ## Enable logs agent and provide custom configs
+  logs:
+    # datadog.logs.enabled -- Enables this to activate Datadog Agent log collection
+    enabled: true
+
+    # datadog.logs.containerCollectAll -- Enable this to allow log collection for all containers
+    containerCollectAll: true
+  ## Enable apm agent and provide custom configs
+  apm:
+    # datadog.apm.enabled -- Enable this to enable APM and tracing, on port 8126
+    enabled: true
+  ## Enable process agent and provide custom configs
+  processAgent:
+    # datadog.processAgent.processCollection -- Set this to true to enable process collection in process monitoring agent
+    processCollection: true
+  networkMonitoring:
+    # datadog.networkMonitoring.enabled -- Enable network performance monitoring
+    enabled: true
+  ## Enable security agent and provide custom configs
+  securityAgent:
+    compliance:
+      # datadog.securityAgent.compliance.enabled -- Set this to true to enable compliance checks
+      enabled: true
+    runtime:
+      # datadog.securityAgent.runtime.enabled -- Set to true to enable the Security Runtime Module
+      enabled: true
+      syscallMonitor:
+        # datadog.securityAgent.runtime.syscallMonitor.enabled -- Set to true to enable the Syscall monitoring.
+        enabled: true
+  ## Configure prometheus scraping autodiscovery
+  ## ref: https://docs.datadoghq.com/agent/kubernetes/prometheus/
+  prometheusScrape:
+    # datadog.prometheusScrape.enabled -- Enable autodiscovering pods and services exposing prometheus metrics.
+    enabled: false
+    # datadog.prometheusScrape.serviceEndpoints -- Enable generating dedicated checks for service endpoints.
+    serviceEndpoints: false
+    # datadog.prometheusScrape.additionalConfigs -- Allows adding advanced openmetrics check configurations with custom discovery rules. (Requires Agent version 7.27+)
+    additionalConfigs: []
+      # -
+      #   autodiscovery:
+      #     kubernetes_annotations:
+      #       include:
+      #         custom_include_label: 'true'
+      #       exclude:
+      #         custom_exclude_label: 'true'
+      #     kubernetes_container_names:
+      #     - my-app
+      #   configurations:
+      #   - send_distribution_buckets: true
+      #     timeout: 5
+clusterAgent:
+  # Enable the metricsProvider to be able to scale based on metrics in Datadog
+  metricsProvider:
+    # clusterAgent.metricsProvider.enabled -- Set this to true to enable Metrics Provider
+    enabled: true
+  ## Configure kubernetes_controller_manager,kube_scheduler,kube_metrics_server integrations  
+  confd:
+    kubernetes_controller_manager.yaml: |-
+      ad_identifiers:
+        - kube-controller-manager
+      init_config:
+      instances:
+        - prometheus_url: "http://%%host%%:10252/metrics"
+
+    kube_scheduler.yaml: |-
+      ad_identifiers:
+        - kube-scheduler
+      init_config:
+      instances:
+        - prometheus_url: http://%%host%%:10251/metrics
+      
+    kube_metrics_server.yaml: |-
+      init_config:
+      instances:
+        - prometheus_url: https://localhost:443/metrics
+    
